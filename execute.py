@@ -1,0 +1,55 @@
+from data import load_data, to_training_input_and_label
+from model import GPTModel
+from train import train
+import torch
+
+DEVICE = "cpu"  # Set device to 'cpu' or 'cuda' as needed
+def set_device(device):
+    """
+    Set the device for PyTorch operations.
+    Args:
+        device (str): Device to set ('cpu' or 'cuda').
+    """
+    global DEVICE
+    DEVICE = device
+
+def execute(train_data_file, seq_length=50, batch_size=32, epochs=10):  
+    indices, char_to_idx, idx_to_char = load_data(train_data_file)
+    X, Y = to_training_input_and_label(indices, seq_length, batch_size)
+    
+    # convert X and Y to tensors 
+    #X = torch.tensor(X, device=DEVICE)
+    #Y = torch.tensor(Y, device=DEVICE)
+    vocab_size = len(char_to_idx)
+    print(f"Vocabulary size: {vocab_size}")
+
+    dmodel = 128
+    h = 8
+    dk = 64
+
+    dff = 256
+    num_layers = 6
+    
+    gpt_model = GPTModel(vocab_size, dmodel, dk, h, dff, num_layers)
+    
+    train(gpt_model, X, Y, batch_size=batch_size, epochs=epochs, lr=1e-3, weight_decay=1e-4, device=DEVICE)
+    return gpt_model, idx_to_char
+
+def generate(model, idx_to_char, max_length=50):
+    """
+    # Generate text using the trained model
+    Args:
+        model (nn.Module): The trained model.
+        sequence (str): The initial sequence to start generation.
+        max_length (int): Maximum length of the generated sequence.
+    Returns:
+        str: Generated text.
+    """
+    # bug: incorrect dimension and value
+    sequence = torch.zeros((1,1), dtype=torch.long, device=DEVICE)  # Start with a single token (e.g., index 0)
+    sequence = model.generate(sequence, max_length=max_length)
+    # convert sequence to chars  
+    generated_indices = sequence[0].tolist()
+    generated_text = ''.join(idx_to_char[idx] for idx in generated_indices)
+    print(f"Generated indices: {generated_indices}")
+    print(f"Generated text: {generated_text}")
