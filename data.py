@@ -17,7 +17,6 @@ def load_data(file_path):
         text = f.read()
         # this already includes newline
         text = list(text)
-        print(len(text))
     # convert text from list to set 
     unique_chars = sorted(set(text)) # for consistent char_to_idx
     # assign each char to an index

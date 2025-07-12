@@ -45,6 +45,8 @@ def generate(model, idx_to_char, max_length=50):
     Returns:
         str: Generated text.
     """
+    model.eval()
+    
     # bug: incorrect dimension and value
     sequence = torch.zeros((1,1), dtype=torch.long, device=DEVICE)  # Start with a single token (e.g., index 0)
     sequence = model.generate(sequence, max_length=max_length)

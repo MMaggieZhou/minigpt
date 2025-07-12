@@ -40,7 +40,7 @@ def train(model, inputs, targets, batch_size=32, epochs=100, lr=0.001, weight_de
         # display progress bar 
         # bug: correct usage and dimension
         for inputs_b, targets_b in progress_bar:
-            print(f'Processing batch with input shape: {inputs_b.shape}, target shape: {targets_b.shape}')
+            # print(f'Processing batch with input shape: {inputs_b.shape}, target shape: {targets_b.shape}')
             # Zero the gradients
             optimizer.zero_grad()
             inputs_b, targets_b = inputs_b.to(device), targets_b.to(device)
@@ -51,7 +51,7 @@ def train(model, inputs, targets, batch_size=32, epochs=100, lr=0.001, weight_de
             B, T, C = outputs_b.shape
             outputs_b = outputs_b.view(B * T, C)
             targets_b = targets_b.view(B*T)
-            print(f'Output shape: {outputs_b.shape}, Target shape: {targets_b.shape}')
+            # print(f'Output shape: {outputs_b.shape}, Target shape: {targets_b.shape}')
             # bug: shape of inputs
             loss = F.cross_entropy(outputs_b, targets_b)
 
