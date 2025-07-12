@@ -13,7 +13,7 @@ def set_device(device):
     global DEVICE
     DEVICE = device
 
-def execute(train_data_file, seq_length=50, batch_size=32, epochs=10):  
+def execute(train_data_file, dmodel=128, h=8, dk=64, dff=256, num_layers=6, seq_length=50, batch_size=32, epochs=10):  
     indices, char_to_idx, idx_to_char = load_data(train_data_file)
     X, Y = to_training_input_and_label(indices, seq_length, batch_size)
     
@@ -22,13 +22,6 @@ def execute(train_data_file, seq_length=50, batch_size=32, epochs=10):
     #Y = torch.tensor(Y, device=DEVICE)
     vocab_size = len(char_to_idx)
     print(f"Vocabulary size: {vocab_size}")
-
-    dmodel = 128
-    h = 8
-    dk = 64
-
-    dff = 256
-    num_layers = 6
     
     gpt_model = GPTModel(vocab_size, dmodel, dk, h, dff, num_layers)
     
@@ -46,7 +39,7 @@ def generate(model, idx_to_char, max_length=50):
         str: Generated text.
     """
     model.eval()
-    
+
     # bug: incorrect dimension and value
     sequence = torch.zeros((1,1), dtype=torch.long, device=DEVICE)  # Start with a single token (e.g., index 0)
     sequence = model.generate(sequence, max_length=max_length)
