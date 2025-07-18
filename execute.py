@@ -24,6 +24,9 @@ def execute(train_data_file, dmodel=128, h=8, dk=64, dff=256, num_layers=6, seq_
     print(f"Vocabulary size: {vocab_size}")
     
     gpt_model = GPTModel(vocab_size, dmodel, dk, h, dff, num_layers)
+    # get number of parameters
+    num_params = sum(p.numel() for p in gpt_model.parameters() if p.requires_grad)
+    print(f"Number of parameters in the model: {num_params}")
     
     train(gpt_model, X, Y, batch_size=batch_size, epochs=epochs, lr=1e-3, weight_decay=1e-4, device=DEVICE)
     return gpt_model, idx_to_char

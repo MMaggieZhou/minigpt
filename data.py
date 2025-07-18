@@ -1,4 +1,5 @@
 import torch
+import os
 
 def load_data(file_path):
     """
@@ -13,10 +14,14 @@ def load_data(file_path):
             - idx_to_char (dict): Dictionary mapping indices back to characters.
     """
 
+    # get the size of the file
+    file_size = os.path.getsize(file_path)
+    print(f"File size: {file_size} bytes")
     with open(file_path, "r", encoding="utf-8") as f:
         text = f.read()
         # this already includes newline
         text = list(text)
+        print(f"Number of characters in the text: {len(text)}")
     # convert text from list to set 
     unique_chars = sorted(set(text)) # for consistent char_to_idx
     # assign each char to an index
