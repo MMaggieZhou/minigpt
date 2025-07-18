@@ -5,6 +5,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class FeedForward(nn.Module):
+    """Feed Forward Network as described in the paper."""
+    # dmodel: embedding dimension, dff: feed forward dimension, dropout: dropout rate
+    # The feed forward network consists of two linear transformations with a ReLU activation in between.
+    # The dropout layer is applied after the first linear transformation.
+    # The dropout layer helps prevent overfitting by randomly setting a fraction of the input units
+    # to zero during training.
+
+
+    # The feed forward network is applied independently to each position in the input sequence.
+    # The feed forward network is applied to the output of the self-attention layer.
+
+
     def __init__(self, dmodel, dff, dropout=0.1):
         super().__init__()
         self.linear1 = nn.Linear(dmodel, dff)
@@ -20,7 +32,7 @@ class FeedForward(nn.Module):
 # seems more complicated than Karpathy's implementation
 class MultiHeadSelfAttention(nn.Module):
     def __init__(self, dmodel, dk, h):
-      super().__init__() #?
+      super().__init__()
       assert dmodel % h == 0, "Embedding dimension must be divisible by the number of heads"
       self.h = h
       self.dmodel = dmodel
@@ -42,6 +54,7 @@ class MultiHeadSelfAttention(nn.Module):
         x,
         attention_mask=None, # all encoders share of a batch share the same mask and same applies to decoders
       ):
+      B, T, _ = x.size() # B: batch size, T: sequence length
       # O(batch_size * sequence_l * dk * h * dmodel)
       Q = self._reshape(self.Q(x)) # (batch_size, h, sequence_l, dk)
       # O(batch_size * sequence_l * dk * h * dmodel)
@@ -50,18 +63,17 @@ class MultiHeadSelfAttention(nn.Module):
       V = self._reshape(self.V(x)) # (batch_size, h, sequence_l, dv)
 
       # softmax(QK/dv-2)V, O(batch_size * h * dk * sequence_l ^ 2)
-      scores = torch.matmul(Q, K.permute(0,1,3,2)) / math.sqrt(self.dk) #(batch_size, h, sequence_l, sequence_l)
+      scores = Q @ K.permute(0,1,3,2) / math.sqrt(self.dk) #(batch_size, h, sequence_l, sequence_l)
       if attention_mask != None:  # (batch_size, 1, sequence_l, sequence_l)
           scores = scores.masked_fill(attention_mask == 0, float('-inf'))
       probs = F.softmax(scores, dim=-1)
       # O(batch_size * dmodel * sequence_l^2)
-      output = torch.matmul(probs, V) # (batch_size, h, sequence_l, dv)
+      output = probs @ V # (batch_size, h, sequence_l, dv)
 
       # concat
       output = output.permute(0,2,1,3).contiguous() #? error view size is not compatible with input tensor's size and stride (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.
-      new_shape = output.size()[:-2] + (self.dmodel,)
-      return output.view(new_shape), scores # output: (batch_size, sequene_l, dmodel), return scores for debugging
-    
+      return output.view(B, T, self.dmodel), scores # output: (batch_size, sequene_l, dmodel), return scores for debugging
+     
 class AttentionLayer(nn.Module):
     def __init__(self, dmodel, dk, h, dff, dropout=0.1):
         super().__init__()
@@ -86,6 +98,10 @@ class AttentionLayer(nn.Module):
         return x
     
 class GPTModel(nn.Module):
+    """GPT Model with multiple layers of self-attention and feed-forward networks."""
+    # vocab_size: size of the vocabulary, dmodel: embedding dimension, dk: dimension of the key vectors,
+    # h: number of attention heads, dff: dimension of the feed-forward network,
+    # num_layers: number of layers in the model, dropout: dropout rate
     def __init__(self, vocab_size, dmodel, dk, h, dff, num_layers, dropout=0.1):
         super().__init__()
         self.vocab_size = vocab_size
@@ -99,10 +115,12 @@ class GPTModel(nn.Module):
         self.output_layer = nn.Linear(dmodel, vocab_size)
 
     def forward(self, x, attention_mask=None):
+        # x: (batch_size, sequence_l), consists of token ids in the range of [0, vocab_size-1] 
+        # attention_mask: (batch_size, 1, sequence_l, sequence_l)
         # print(f"Input shape: {x.shape}")  # Debugging line
         if attention_mask is None:
             seq_len = x.size(1)
-            attention_mask = torch.tril(torch.ones((seq_len, seq_len), device=x.device)).unsqueeze(0)  # (1, seq_len, seq_len)
+            attention_mask = torch.tril(torch.ones((seq_len, seq_len), device=x.device)).view(1, 1, seq_len, seq_len)  # (1, seq_len, seq_len)
         x = self.embedding(x) + self.positional_encoding[:, :x.size(1), :]
         for layer in self.layers:
             x = layer(x, attention_mask)
@@ -113,8 +131,7 @@ class GPTModel(nn.Module):
     def generate(self, input_ids, max_length=50):
         for _ in range(max_length):
             seq_len = input_ids.shape[1]
-            attention_mask = torch.tril(torch.ones((1, seq_len, seq_len), device=input_ids.device))
-            output = self.forward(input_ids, attention_mask)
+            output = self.forward(input_ids)
             idx_next = torch.argmax(output[:, -1, :], dim=-1).unsqueeze(-1)
             input_ids = torch.cat([input_ids, idx_next], dim=1)
         return input_ids
