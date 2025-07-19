@@ -13,8 +13,8 @@ def set_device(device):
     global DEVICE
     DEVICE = device
 
-def execute(train_data_file, output_dir, dmodel=128, h=8, dk=64, dff=256, num_layers=6, seq_length=50, batch_size=32, epochs=10):  
-    indices, encoder = load_data(train_data_file)
+def execute(train_data_files, output_dir, dmodel=128, h=8, dk=64, dff=256, num_layers=6, seq_length=50, batch_size=32, epochs=10):  
+    indices, encoder = load_data(train_data_files)
     X, Y = to_training_input_and_label(indices, seq_length, batch_size)
     
     # convert X and Y to tensors 
