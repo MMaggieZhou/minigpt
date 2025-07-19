@@ -108,11 +108,22 @@ class GPTModel(nn.Module):
         self.dmodel = dmodel
         self.embedding = nn.Embedding(vocab_size, dmodel)
         self.positional_encoding = nn.Parameter(torch.zeros(1, 1024, dmodel)) # max sequence length is 1024
-        nn.init.normal_(self.positional_encoding, mean=0.0, std=0.02)
         self.layers = nn.ModuleList([
             AttentionLayer(dmodel, dk, h, dff, dropout) for _ in range(num_layers)
         ])
         self.output_layer = nn.Linear(dmodel, vocab_size)
+        self.apply(self._init_weights)  # Initialize weights
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+        elif isinstance(module, nn.LayerNorm):
+            torch.nn.init.zeros_(module.bias)
+            torch.nn.init.ones_(module.weight)
 
     def forward(self, x, attention_mask=None):
         # x: (batch_size, sequence_l), consists of token ids in the range of [0, vocab_size-1] 
