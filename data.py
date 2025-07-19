@@ -1,6 +1,23 @@
 import torch
 import os
 
+class Encoder: 
+    def __init__(self, char_to_idx, idx_to_char):
+        self.char_to_idx = char_to_idx
+        self.idx_to_char = idx_to_char
+
+    def encode(self, sentence):
+        # convert the sentence, a string; to a list of indices 
+        indices = [self.char_to_idx[char] for char in sentence if char in self.char_to_idx]
+        return indices
+    def decode(self, indices):
+        # convert the indices to a string
+        chars = [self.idx_to_char[idx] for idx in indices if idx in self.idx_to_char]
+        return ''.join(chars)
+    def vocab_size(self):
+        return len(self.char_to_idx)
+    
+
 def load_data(file_path):
     """
     Load and preprocess text data from a file.
@@ -29,7 +46,7 @@ def load_data(file_path):
     idx_to_char = {idx: char for char, idx in char_to_idx.items()}
     # convert text to indices
     indices = [char_to_idx[char] for char in text]
-    return indices, char_to_idx, idx_to_char
+    return indices, Encoder(char_to_idx, idx_to_char)
 
 def to_training_input_and_label_(indices, seq_length, batch_size):
     """

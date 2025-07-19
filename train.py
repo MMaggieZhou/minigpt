@@ -7,7 +7,7 @@ from torch.nn import functional as F
 
 from tqdm import tqdm # tqdm stands for "taqaddum" (تقدّم), which is Arabic for "progress".
 
-def train(model, inputs, targets, batch_size=32, epochs=100, lr=0.001, weight_decay = 1e-4, device='cpu'):
+def train(model, inputs, targets, base_dir, batch_size=32, epochs=100, lr=0.001, weight_decay = 1e-4, device='cpu'):
     """
     Trains a PyTorch model using MSE loss and Adam optimizer with optional L2 regularization.
 
@@ -60,6 +60,10 @@ def train(model, inputs, targets, batch_size=32, epochs=100, lr=0.001, weight_de
 
             # Update the weights
             optimizer.step()
+
+            # persist the model to disk 
+            # Save the model state
+            torch.save(model.state_dict(), base_dir + f'/model_epoch_{epoch+1}.pth')
 
             epoch_loss += loss.item() * inputs_b.size(0)
 
