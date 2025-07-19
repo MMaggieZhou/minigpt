@@ -18,7 +18,7 @@ class Encoder:
         return len(self.char_to_idx)
     
 
-def load_data(file_path):
+def load_data(file_paths):
     """
     Load and preprocess text data from a file.
 
@@ -31,21 +31,23 @@ def load_data(file_path):
             - idx_to_char (dict): Dictionary mapping indices back to characters.
     """
 
+    all_text = []
     # get the size of the file
-    file_size = os.path.getsize(file_path)
-    print(f"File size: {file_size} bytes")
-    with open(file_path, "r", encoding="utf-8") as f:
-        text = f.read()
-        # this already includes newline
-        text = list(text)
-        print(f"Number of characters in the text: {len(text)}")
+    for file_path in file_paths:
+        file_size = os.path.getsize(file_path)
+        print(f"File size: {file_size} bytes")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            text = f.read()
+            text = list(text)
+            print(f"Number of characters in the text: {len(text)}")
+            all_text.extend(text)
     # convert text from list to set 
-    unique_chars = sorted(set(text)) # for consistent char_to_idx
+    unique_chars = sorted(set(all_text)) # for consistent char_to_idx
     # assign each char to an index
     char_to_idx = {char: idx for idx, char in enumerate(unique_chars)}
     idx_to_char = {idx: char for char, idx in char_to_idx.items()}
     # convert text to indices
-    indices = [char_to_idx[char] for char in text]
+    indices = [char_to_idx[char] for char in all_text]
     return indices, Encoder(char_to_idx, idx_to_char)
 
 def to_training_input_and_label_(indices, seq_length, batch_size):

@@ -62,7 +62,7 @@ def test_data():
     
 
 def test_execute():  
-    model, encoder = execute("sample.txt", ".", seq_length=10, batch_size=2, epochs=2)
+    model, encoder = execute(["sample.txt"], ".", seq_length=10, batch_size=2, epochs=2)
     generate(model, encoder, "第2幕", max_length=50)
 
 
