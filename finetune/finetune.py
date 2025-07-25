@@ -26,8 +26,8 @@ class SupervisedFineTuner:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
-
         model = AutoModelForCausalLM.from_pretrained(self.model_path)
+        model.enable_input_require_grads()
         model.to(self.device)
         total_params = sum(p.numel() for p in model.parameters())
         print(f"Total parameters: {total_params}")
