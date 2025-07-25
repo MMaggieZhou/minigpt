@@ -1,6 +1,6 @@
-from data import load_data, to_training_input_and_label
+from train.data import load_data, to_training_input_and_label
 from model import GPTModel
-from train import train
+from train.train import train
 import torch
 
 DEVICE = "cpu"  # Set device to 'cpu' or 'cuda' as needed
