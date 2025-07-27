@@ -93,8 +93,8 @@ def persist_dialogs_to_file(dialogs, role_one, role_two, base_dir):
     lines = []
     for dialog in dialogs: 
         processed_line = {}
-        processed_line["instruction"] = dialog[0][1]
-        processed_line["input"] = ""
+        processed_line["instruction"] = ""
+        processed_line["input"] = dialog[0][1]
         processed_line["output"] = dialog[1][1]
         lines.append(processed_line)
     # persist lines to a json file
